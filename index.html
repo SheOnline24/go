@@ -6,8 +6,8 @@
 <title>Online</title>
 <style>
 body { font-family: Arial, sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
-button { padding: 14px 25px; font-size: 18px; background:#ff2e63; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:20px; }
-#chat, #fakeTyping, #returnBlock, #casinoPopup { display: none; margin-top: 30px; }
+button { padding: 14px 25px; font-size: 18px; background:#ff2e63; color:white; border:none; border-radius:8px; cursor:pointer; margin:10px; }
+#chat, #fakeTyping, #returnBlock { display: none; margin-top: 30px; }
 .fakeTyping { font-style: italic; color: #aaa; margin-top: 20px; }
 </style>
 </head>
@@ -25,35 +25,37 @@ button { padding: 14px 25px; font-size: 18px; background:#ff2e63; color:white; b
 <div id="returnBlock">
   <h2></h2>
   <p></p>
-  <button id="continueWithoutStars"></button>
-</div>
-
-<div id="casinoPopup">
-  <h2>🎁 Bonus available!</h2>
-  <button id="getCasinoBonus">Get Bonus</button>
+  <button id="datingButton"></button>
+  <button id="casinoButton"></button>
 </div>
 
 <script>
 // ===== Настройки офферов =====
 const DATING = "https://tone.affomelody.com/click?pid=6350&offer_id=25";
-const CASINO = "https://onlinepnpbit.com/2Vi4txHl/";
+
+// GEO‑подбор Casino оффера
+let casinoOffer;
+const lang = navigator.language.split('-')[0];
+if(lang === 'ru' || lang === 'pl'){
+  casinoOffer = "https://ru-casino.com";
+} else {
+  casinoOffer = "https://en-casino.com";
+}
 
 // ===== Локализация =====
 const locales = {
-  en: { typing: "She is typing...", starRequired: "⭐ Telegram Stars required", noStars: "You don't have Stars", continue: "Continue without Stars" },
-  ru: { typing: "Она печатает...", starRequired: "⭐ Требуются Telegram Stars", noStars: "У тебя нет Stars", continue: "Продолжить без Stars" },
-  de: { typing: "Sie tippt...", starRequired: "⭐ Telegram Stars erforderlich", noStars: "Du hast keine Stars", continue: "Ohne Stars fortfahren" },
-  fr: { typing: "Elle écrit...", starRequired: "⭐ Telegram Stars requis", noStars: "Tu n'as pas de Stars", continue: "Continuer sans Stars" },
-  es: { typing: "Ella está escribiendo...", starRequired: "⭐ Se requieren Telegram Stars", noStars: "No tienes Stars", continue: "Continuar sin Stars" },
-  it: { typing: "Sta scrivendo...", starRequired: "⭐ Telegram Stars richiesti", noStars: "Non hai Stars", continue: "Continua senza Stars" },
-  nl: { typing: "Ze is aan het typen...", starRequired: "⭐ Telegram Stars vereist", noStars: "Je hebt geen Stars", continue: "Doorgaan zonder Stars" },
-  pl: { typing: "Ona pisze...", starRequired: "⭐ Wymagane Telegram Stars", noStars: "Nie masz Stars", continue: "Kontynuuj bez Stars" },
-  pt: { typing: "Ela está digitando...", starRequired: "⭐ Telegram Stars necessários", noStars: "Você não tem Stars", continue: "Continuar sem Stars" },
-  tr: { typing: "O yazıyor...", starRequired: "⭐ Telegram Stars gerekli", noStars: "Stars yok", continue: "Stars olmadan devam et" }
+  en: { typing: "She is typing...", starRequired: "⭐ Telegram Stars required", noStars: "You don't have Stars", dating: "Continue to Dating", casino: "Get Casino Bonus 🎁" },
+  ru: { typing: "Она печатает...", starRequired: "⭐ Требуются Telegram Stars", noStars: "У тебя нет Stars", dating: "Перейти на Dating", casino: "Получить бонус Казино 🎁" },
+  de: { typing: "Sie tippt...", starRequired: "⭐ Telegram Stars erforderlich", noStars: "Du hast keine Stars", dating: "Zu Dating", casino: "Casino Bonus 🎁" },
+  fr: { typing: "Elle écrit...", starRequired: "⭐ Telegram Stars requis", noStars: "Tu n'as pas de Stars", dating: "Continuer sur Dating", casino: "Bonus Casino 🎁" },
+  es: { typing: "Ella está escribiendo...", starRequired: "⭐ Se requieren Telegram Stars", noStars: "No tienes Stars", dating: "Ir a Dating", casino: "Bono Casino 🎁" },
+  it: { typing: "Sta scrivendo...", starRequired: "⭐ Telegram Stars richiesti", noStars: "Non hai Stars", dating: "Vai a Dating", casino: "Bonus Casino 🎁" },
+  nl: { typing: "Ze is aan het typen...", starRequired: "⭐ Telegram Stars vereist", noStars: "Je hebt geen Stars", dating: "Ga naar Dating", casino: "Casino Bonus 🎁" },
+  pl: { typing: "Ona pisze...", starRequired: "⭐ Wymagane Telegram Stars", noStars: "Nie masz Stars", dating: "Przejdź do Dating", casino: "Bonus Casino 🎁" },
+  pt: { typing: "Ela está digitando...", starRequired: "⭐ Telegram Stars necessários", noStars: "Você não tem Stars", dating: "Ir para Dating", casino: "Bônus Casino 🎁" },
+  tr: { typing: "O yazıyor...", starRequired: "⭐ Telegram Stars gerekli", noStars: "Stars yok", dating: "Dating'e devam et", casino: "Casino Bonus 🎁" }
 };
 
-// ===== Определяем язык пользователя =====
-const lang = navigator.language.split('-')[0];
 const text = locales[lang] || locales['en'];
 
 // ===== Подставляем тексты =====
@@ -61,7 +63,8 @@ document.getElementById("fakeTyping").innerText = text.typing;
 const returnBlock = document.getElementById("returnBlock");
 returnBlock.querySelector("h2").innerText = text.starRequired;
 returnBlock.querySelector("p").innerText = text.noStars;
-document.getElementById("continueWithoutStars").innerText = text.continue;
+document.getElementById("datingButton").innerText = text.dating;
+document.getElementById("casinoButton").innerText = text.casino;
 
 // ===== Telegram переход =====
 let tgTime = null;
@@ -69,10 +72,10 @@ document.getElementById("chat").style.display = "block";
 document.getElementById("joinTelegram").addEventListener("click", () => {
   tgTime = Date.now();
   localStorage.setItem("tg_time", tgTime);
-  window.location.href = "https://t.me/+NFHjJC5nOndlZjky"; // Telegram группа
+  window.location.href = "https://t.me/+NFHjJC5nOndlZjky";
 });
 
-// ===== Возврат на страницу (надёжная обработка) =====
+// ===== Возврат на страницу =====
 function checkReturn() {
   const storedTime = localStorage.getItem("tg_time");
   if(storedTime){
@@ -103,25 +106,21 @@ function showReturnBlock() {
   }, 2000);
 }
 
-// ===== Кнопка Continue without Stars =====
-document.getElementById("continueWithoutStars").addEventListener("click", () => {
+// ===== Кнопки офферов =====
+document.getElementById("datingButton").addEventListener("click", () => {
   window.location.href = DATING;
-  setTimeout(() => {
-    document.getElementById("casinoPopup").style.display = "block";
-  }, 30000);
 });
 
-// ===== Кнопка Get Casino Bonus =====
-document.getElementById("getCasinoBonus").addEventListener("click", () => {
-  window.location.href = CASINO;
+document.getElementById("casinoButton").addEventListener("click", () => {
+  window.location.href = casinoOffer;
 });
 
-// ===== Автослив если не нажал =====
-setInterval(() => {
+// ===== Автослив на Dating через 3-5 сек =====
+setTimeout(() => {
   if(returnBlock.style.display === "block") {
     window.location.href = DATING;
   }
-}, 8000);
+}, 4000);
 
 // ===== Анимация заголовка вкладки =====
 const titles = ["Online", "● She is typing...", "New message 💬", "Online"];
@@ -131,6 +130,7 @@ setInterval(() => {
   titleIndex++;
   if(titleIndex >= titles.length){ titleIndex = 0; }
 }, 2000);
+
 </script>
 
 </body>
