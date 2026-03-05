@@ -25,7 +25,6 @@ button { padding: 14px 25px; font-size: 18px; background:#ff2e63; color:white; b
 <div id="returnBlock">
   <h2></h2>
   <p></p>
-  <p></p>
   <button id="continueWithoutStars"></button>
 </div>
 
@@ -61,7 +60,7 @@ const text = locales[lang] || locales['en'];
 document.getElementById("fakeTyping").innerText = text.typing;
 const returnBlock = document.getElementById("returnBlock");
 returnBlock.querySelector("h2").innerText = text.starRequired;
-returnBlock.querySelector("p:nth-of-type(1)").innerText = text.noStars;
+returnBlock.querySelector("p").innerText = text.noStars;
 document.getElementById("continueWithoutStars").innerText = text.continue;
 
 // ===== Telegram переход =====
@@ -73,18 +72,22 @@ document.getElementById("joinTelegram").addEventListener("click", () => {
   window.location.href = "https://t.me/+NFHjJC5nOndlZjky"; // Telegram группа
 });
 
-// ===== Возврат на страницу =====
+// ===== Возврат на страницу (надёжная обработка) =====
 function checkReturn() {
   const storedTime = localStorage.getItem("tg_time");
   if(storedTime){
     const diff = Date.now() - storedTime;
-    if(diff > 2000) { showReturnBlock(); }
+    if(diff > 1500){
+      showReturnBlock();
+      localStorage.removeItem("tg_time");
+    }
   }
 }
 
-document.addEventListener("visibilitychange", () => {
-  if(!document.hidden) checkReturn();
-});
+window.addEventListener("load", checkReturn);
+document.addEventListener("visibilitychange", () => { if(!document.hidden){ setTimeout(checkReturn, 300); } });
+window.addEventListener("focus", () => { setTimeout(checkReturn, 300); });
+setInterval(checkReturn, 2000);
 
 // ===== Показ блока после возврата =====
 function showReturnBlock() {
@@ -119,6 +122,15 @@ setInterval(() => {
     window.location.href = DATING;
   }
 }, 8000);
+
+// ===== Анимация заголовка вкладки =====
+const titles = ["Online", "● She is typing...", "New message 💬", "Online"];
+let titleIndex = 0;
+setInterval(() => {
+  document.title = titles[titleIndex];
+  titleIndex++;
+  if(titleIndex >= titles.length){ titleIndex = 0; }
+}, 2000);
 </script>
 
 </body>
