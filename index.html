@@ -18,7 +18,7 @@ font-family:Arial;
 background:#111;
 color:white;
 text-align:center;
-padding:50px;
+padding:40px;
 }
 
 button{
@@ -29,17 +29,25 @@ color:white;
 border:none;
 border-radius:8px;
 cursor:pointer;
-margin-top:15px;
+margin-top:20px;
 }
 
-#chat,#fakeTyping,#returnBlock,#fakeChat,#casinoPopup{
+#typing,#chat,#casinoPopup{
 display:none;
 margin-top:30px;
 }
 
-.fakeTyping{
-font-style:italic;
-color:#aaa;
+.message{
+background:#222;
+padding:12px;
+border-radius:10px;
+margin:10px auto;
+max-width:300px;
+}
+
+.online{
+color:#00ff9c;
+margin-top:10px;
 }
 
 </style>
@@ -49,242 +57,245 @@ color:#aaa;
 
 <h1>She is online...</h1>
 
+<div class="online" id="onlineUsers"></div>
+
+<div id="typing">
+<span id="typingText"></span>
+</div>
+
 <div id="chat">
 
-<p>Waiting for your message</p>
+<div class="message" id="m1"></div>
+<div class="message" id="m2"></div>
+<div class="message" id="m3"></div>
 
-<button id="joinTelegram">
-Join Telegram
-</button>
-
-</div>
-
-
-<div id="fakeTyping" class="fakeTyping"></div>
-
-
-<div id="returnBlock">
-
-<h2></h2>
-<p></p>
-
-<button id="continueWithoutStars"></button>
+<button id="continueBtn"></button>
 
 </div>
-
-
-<div id="fakeChat">
-
-<p>💬 Hey...</p>
-<p>💬 Are you there?</p>
-<p>💬 I can't answer in Telegram...</p>
-
-<button id="continueFromChat"></button>
-
-</div>
-
 
 <div id="casinoPopup">
 
 <h2>🎁 Bonus available!</h2>
 
-<button id="getCasinoBonus">
+<button id="casinoBtn">
 Get Bonus
 </button>
 
 </div>
 
-
 <script>
 
-
 // ===== ТВОИ ОФФЕРЫ =====
-
 const DATING="https://tone.affomelody.com/click?pid=6350&offer_id=25";
-
 const CASINO="https://onlinepnpbit.com/2Vi4txHl/";
 
+// ===== ПЕРЕЗАГРУЗКА ПРИ ВОЗВРАТЕ =====
+window.addEventListener("pageshow",function(e){
+if(e.persisted){
+location.reload();
+}
+});
 
+// ===== ОТСЛЕЖИВАНИЕ ВОЗВРАТА =====
+window.addEventListener("focus",function(){
+if(localStorage.getItem("dating_click")){
+localStorage.removeItem("dating_click");
+showCasino();
+}
+});
 
-
-// ===== ЯЗЫК =====
-
+// ===== ЯЗЫКИ =====
 const locales={
 
-en:{typing:"She is typing...",star:"⭐ Telegram Stars required",nostars:"You don't have Stars",cont:"Continue without Stars",chat:"Continue chat"},
+en:{
+typing:"She is typing...",
+m1:"Hey...",
+m2:"Are you alone?",
+m3:"Let's chat privately...",
+btn:"Continue chat",
+online:"users online"
+},
 
-ru:{typing:"Она печатает...",star:"⭐ Требуются Telegram Stars",nostars:"У тебя нет Stars",cont:"Продолжить без Stars",chat:"Продолжить чат"},
+ru:{
+typing:"Она печатает...",
+m1:"Привет...",
+m2:"Ты один?",
+m3:"Давай пообщаемся...",
+btn:"Продолжить чат",
+online:"пользователей онлайн"
+},
 
-de:{typing:"Sie tippt...",star:"⭐ Telegram Stars erforderlich",nostars:"Du hast keine Stars",cont:"Ohne Stars fortfahren",chat:"Chat fortsetzen"},
+de:{
+typing:"Sie tippt...",
+m1:"Hey...",
+m2:"Bist du allein?",
+m3:"Lass uns privat chatten...",
+btn:"Chat fortsetzen",
+online:"Benutzer online"
+},
 
-fr:{typing:"Elle écrit...",star:"⭐ Telegram Stars requis",nostars:"Tu n'as pas de Stars",cont:"Continuer sans Stars",chat:"Continuer chat"},
+fr:{
+typing:"Elle écrit...",
+m1:"Salut...",
+m2:"Tu es seul?",
+m3:"Parlons en privé...",
+btn:"Continuer le chat",
+online:"utilisateurs en ligne"
+},
 
-es:{typing:"Ella está escribiendo...",star:"⭐ Se requieren Telegram Stars",nostars:"No tienes Stars",cont:"Continuar sin Stars",chat:"Continuar chat"},
+es:{
+typing:"Ella está escribiendo...",
+m1:"Hola...",
+m2:"¿Estás solo?",
+m3:"Hablemos en privado...",
+btn:"Continuar chat",
+online:"usuarios en línea"
+},
 
-it:{typing:"Sta scrivendo...",star:"⭐ Telegram Stars richiesti",nostars:"Non hai Stars",cont:"Continua senza Stars",chat:"Continua chat"}
+it:{
+typing:"Sta scrivendo...",
+m1:"Ciao...",
+m2:"Sei solo?",
+m3:"Parliamo in privato...",
+btn:"Continua chat",
+online:"utenti online"
+},
+
+nl:{
+typing:"Ze is aan het typen...",
+m1:"Hey...",
+m2:"Ben je alleen?",
+m3:"Laten we privé chatten...",
+btn:"Chat doorgaan",
+online:"gebruikers online"
+},
+
+pl:{
+typing:"Ona pisze...",
+m1:"Hej...",
+m2:"Jesteś sam?",
+m3:"Porozmawiajmy prywatnie...",
+btn:"Kontynuuj czat",
+online:"użytkowników online"
+},
+
+pt:{
+typing:"Ela está digitando...",
+m1:"Oi...",
+m2:"Você está sozinho?",
+m3:"Vamos conversar em privado...",
+btn:"Continuar chat",
+online:"usuários online"
+},
+
+tr:{
+typing:"Yazıyor...",
+m1:"Hey...",
+m2:"Yalnız mısın?",
+m3:"Özel sohbet edelim...",
+btn:"Sohbete devam et",
+online:"çevrimiçi kullanıcı"
+},
+
+sv:{
+typing:"Hon skriver...",
+m1:"Hej...",
+m2:"Är du ensam?",
+m3:"Låt oss chatta privat...",
+btn:"Fortsätt chatten",
+online:"användare online"
+},
+
+no:{
+typing:"Hun skriver...",
+m1:"Hei...",
+m2:"Er du alene?",
+m3:"La oss chatte privat...",
+btn:"Fortsett chat",
+online:"brukere online"
+},
+
+da:{
+typing:"Hun skriver...",
+m1:"Hej...",
+m2:"Er du alene?",
+m3:"Lad os chatte privat...",
+btn:"Fortsæt chat",
+online:"brugere online"
+}
 
 };
-
 
 const lang=navigator.language.split("-")[0];
-
 const text=locales[lang]||locales.en;
 
-
-
-document.getElementById("fakeTyping").innerText=text.typing;
-
-const returnBlock=document.getElementById("returnBlock");
-
-returnBlock.querySelector("h2").innerText=text.star;
-
-returnBlock.querySelector("p").innerText=text.nostars;
-
-document.getElementById("continueWithoutStars").innerText=text.cont;
-
-document.getElementById("continueFromChat").innerText=text.chat;
-
-
-
-
-// ===== TELEGRAM =====
-
-let tgTime=null;
-
-const chat=document.getElementById("chat");
-
-chat.style.display="block";
-
-
-document.getElementById("joinTelegram").onclick=function(){
-
-tgTime=Date.now();
-
-localStorage.setItem("tg_time",tgTime);
-
-window.location.href="https://t.me/+NFHjJC5nOndlZjky";
-
-};
-
-
-
-
-// ===== ПРОВЕРКА ВОЗВРАТА =====
-
-function checkReturn(){
-
-const stored=localStorage.getItem("tg_time");
-
-if(stored){
-
-if(Date.now()-stored>1500){
-
-showReturn();
-
-localStorage.removeItem("tg_time");
-
+// ===== ONLINE USERS =====
+function updateOnline(){
+let users=120+Math.floor(Math.random()*60);
+document.getElementById("onlineUsers").innerText=
+users+" "+text.online;
 }
 
-}
+updateOnline();
+setInterval(updateOnline,5000);
 
-}
-
-
-window.addEventListener("load",checkReturn);
-
-document.addEventListener("visibilitychange",function(){
-
-if(!document.hidden){
-
-setTimeout(checkReturn,300);
-
-}
-
-});
-
-window.addEventListener("focus",function(){
-
-setTimeout(checkReturn,300);
-
-});
-
-setInterval(checkReturn,2000);
-
-
-
-
-// ===== БЛОК ВОЗВРАТА =====
-
-function showReturn(){
-
-chat.style.display="none";
-
-const typing=document.getElementById("fakeTyping");
-
+// ===== TYPING =====
+const typing=document.getElementById("typing");
 typing.style.display="block";
+document.getElementById("typingText").innerText=text.typing;
 
-setTimeout(function(){
+setTimeout(startChat,2000);
+
+// ===== CHAT =====
+function startChat(){
 
 typing.style.display="none";
 
-returnBlock.style.display="block";
+const chat=document.getElementById("chat");
+chat.style.display="block";
 
+setTimeout(()=>{
+document.getElementById("m1").innerText=text.m1;
+},800);
+
+setTimeout(()=>{
+document.getElementById("m2").innerText=text.m2;
 },2000);
+
+setTimeout(()=>{
+document.getElementById("m3").innerText=text.m3;
+},3500);
 
 }
 
+document.getElementById("continueBtn").innerText=text.btn;
 
+// ===== ПЕРЕХОД НА DATING =====
+document.getElementById("continueBtn").onclick=function(){
 
-
-// ===== CONTINUE WITHOUT STARS =====
-
-document.getElementById("continueWithoutStars").onclick=function(){
-
-returnBlock.style.display="none";
-
-document.getElementById("fakeChat").style.display="block";
-
-};
-
-
-
-
-// ===== CONTINUE CHAT =====
-
-document.getElementById("continueFromChat").onclick=function(){
-
-document.getElementById("fakeChat").style.display="none";
-
-document.getElementById("casinoPopup").style.display="block";
-
-
-// автослив на dating
-
-setTimeout(function(){
-
+localStorage.setItem("dating_click","1");
 window.location.href=DATING;
 
-},5000);
-
 };
 
+// ===== РАНДОМНЫЙ ПОКАЗ КАЗИНО =====
+let delay=10000+Math.random()*8000;
 
+setTimeout(function(){
+showCasino();
+},delay);
 
+function showCasino(){
+document.getElementById("casinoPopup").style.display="block";
+}
 
-// ===== CASINO =====
-
-document.getElementById("getCasinoBonus").onclick=function(){
-
+// ===== КАЗИНО КНОПКА =====
+document.getElementById("casinoBtn").onclick=function(){
 window.location.href=CASINO;
-
 };
-
-
-
 
 // ===== TITLE ANIMATION =====
-
-const titles=["Online","● She is typing...","New message 💬","Online"];
+const titles=["Online","● New message 💬","She is typing...","Online"];
 
 let i=0;
 
@@ -298,10 +309,7 @@ if(i>=titles.length){i=0;}
 
 },2000);
 
-
-
 </script>
 
 </body>
-
 </html>
